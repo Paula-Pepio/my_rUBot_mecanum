@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Student template for the holonomic obstacle wall follower."""
+"""Holonomic obstacle wall follower."""
 
 import math
 
@@ -84,8 +84,13 @@ class HolonomicObstacleWallFollower(Node):
         self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         self.timer = self.create_timer(0.05, self.publish_command)
 
+        # Terminal information: last status text and last logged situation.
+        self._state_action = 'Idle'
+        self._last_event = None
+        self.info_timer = self.create_timer(1.0, self.log_info)
+
         self.get_logger().info(
-            'Student template started. Complete the TODO sections.'
+            'rUBot holonomic obstacle wall follower started.'
         )
 
     def publish_command(self):
@@ -334,11 +339,61 @@ class HolonomicObstacleWallFollower(Node):
         cmd = Twist()
         self.run_state(measurements, closest, cmd)
         self.command = cmd
+        self.report(measurements, closest, cmd)
+
+    def report(self, measurements, closest, cmd):
+        """Build the status text and log it when the situation changes."""
+        right_distance, right_angle = measurements[self.RIGHT]
+        if right_angle is None:
+            angle_text = 'None'
+        else:
+            angle_text = f'{right_angle:.0f}'
+
+        if self.state == self.FRONT:
+            if self.obstacle_is_long:
+                detail = 'long wall -> turn LEFT'
+            else:
+                detail = (
+                    f'sidestep LEFT, progress '
+                    f'{self.lateral_progress():.2f}/'
+                    f'{self.max_front_length:.2f} m'
+                )
+        elif self.state == self.FRONT_RIGHT:
+            if self.obstacle_is_long:
+                detail = 'long wall -> turn LEFT'
+            else:
+                detail = 'short obstacle -> diagonal forward-left'
+        elif self.state == self.BACK_RIGHT:
+            detail = 'diagonal forward-right to recover the wall'
+        elif self.passing_short_obstacle:
+            detail = 'passing short obstacle (w=0)'
+        else:
+            detail = 'following the wall'
+
+        self._state_action = (
+            f'{self.state}: {detail} | closest={closest} | '
+            f'right={right_distance:.2f} m, angle={angle_text} deg | '
+            f'vx={cmd.linear.x:.2f}, vy={cmd.linear.y:.2f}, '
+            f'w={cmd.angular.z:.2f}'
+        )
+
+        # Log immediately only when the situation changes (not every scan).
+        event = (
+            self.state, self.obstacle_is_long, self.passing_short_obstacle
+        )
+        if event != self._last_event:
+            self.get_logger().info(self._state_action)
+            self._last_event = event
+
+    def log_info(self):
+        """Print the latest status once per second."""
+        self.get_logger().info(self._state_action)
 
     def stop(self):
         """Publish a final zero command."""
         self.command = Twist()
         self.timer.cancel()
+        self.info_timer.cancel()
         try:
             self.publisher.publish(self.command)
         except Exception:
