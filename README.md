@@ -5,3 +5,4 @@ In this ROS2 repository we design, simulate and control different robots:
 - Limo commercial robot
 - Paula Pepió's commit contribution to the repository (director).
 - David Bonillo's commit contribution to the repository (collaborator).
+- Laia Colomer's commit contribution to the repository (collaborator).
