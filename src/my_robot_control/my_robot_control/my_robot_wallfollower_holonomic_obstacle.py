@@ -14,6 +14,7 @@ from tf_transformations import euler_from_quaternion
 
 
 def clamp(value, low, high):
+    """Limits 'value' to the interval [low, high] (used to narrow down velocities)."""
     return max(low, min(high, value))
 
 
@@ -56,27 +57,33 @@ class HolonomicObstacleWallFollower(Node):
             self.declare_parameter('alignment_gain', 2.0).value
         )
 
+        # Region states definition
         self.RIGHT = 'RIGHT'
         self.FRONT = 'FRONT'
         self.FRONT_RIGHT = 'FRONT_RIGHT'
         self.BACK_RIGHT = 'BACK_RIGHT'
 
+        # In bypass diagonals, we use half of the velocities
         self.diagonal_factor = 0.5
+        # Following scans necessary to confirm a change of region.
         self.region_confirmations = 3
+        # Number of most near rays that are averaged in each region.
         self.robust_rays = 3
 
+        # Variables
         self.state = self.RIGHT
-        self.obstacle_is_long = False
-        self.passing_short_obstacle = False
-        self.command = Twist()
-        self.odom_pose = None
-        self.front_start_pose = None
-        self.right_angle = None
+        self.obstacle_is_long = False           # True -> long wall: turn around
+        self.passing_short_obstacle = False     # True -> bypass ongoing
+        self.command = Twist()                  # Twist = everything at 0 = stop
+        self.odom_pose = None                   # (x, y, yaw) when /odom arrives
+        self.front_start_pose = None            # POSE when entering FRONT state
+        self.right_angle = None                 # Last angle measured to the right
 
-        self.region_candidate = None
-        self.region_candidate_count = 0
-        self.stable_region = None
+        self.region_candidate = None            # Region seen in the last scan
+        self.region_candidate_count = 0         # Number of following scans with this candidate
+        self.stable_region = None               # Confirmed region
 
+        # ROS
         self.create_subscription(
             LaserScan, '/scan', self.scan_callback, qos_profile_sensor_data
         )
@@ -94,6 +101,7 @@ class HolonomicObstacleWallFollower(Node):
         )
 
     def publish_command(self):
+        """ Publishes the last command every 0.05s"""
         self.publisher.publish(self.command)
 
     def odom_callback(self, msg):
@@ -108,6 +116,7 @@ class HolonomicObstacleWallFollower(Node):
         ]
         _, _, yaw = euler_from_quaternion(quaternion)
         self.odom_pose = (position.x, position.y, yaw)
+
 
     def region_measurements(self, scan):
         """Return robust distances and angles for the four LiDAR regions."""
@@ -134,6 +143,7 @@ class HolonomicObstacleWallFollower(Node):
             angle = angle_min + i * angle_increment
             angle = (angle + 180.0) % 360.0 - 180.0
 
+            # Intervals
             if -20.0 <= angle <= 20.0:
                 rays[self.FRONT].append((distance, angle))
             elif -70.0 <= angle < -20.0:
@@ -143,7 +153,7 @@ class HolonomicObstacleWallFollower(Node):
             elif -160.0 <= angle < -110.0:
                 rays[self.BACK_RIGHT].append((distance, angle))
 
-        # TODO 2: mean distance and mean angle of the nearest rays.
+        # TODO 2: in each region, mean distance and mean angle of the 3 nearest rays more valid.
         measurements = {}
         for region, region_rays in rays.items():
             if not region_rays:
@@ -162,25 +172,27 @@ class HolonomicObstacleWallFollower(Node):
         """Return the closest region inside detection_limit."""
         # TODO 3: regions farther than detection_limit are ignored.
         closest = None
-        best_distance = self.detection_limit
+        best_distance = self.detection_limit    # Just counts what's nearer
 
         for region, (distance, _) in measurements.items():
             if distance < best_distance:
                 best_distance = distance
                 closest = region
 
-        return closest
+        return closest                          # None if there is nothing near
 
     def confirmed_region(self, measurements):
-        """Confirm a region change over several consecutive scans."""
+        """Confirm a region change over several consecutive scans.
+        Avoids that one single noisy scan changes the state: the nearest region 
+        is just accepted after 'region_confirmations' equal consecutive scans."""
         # TODO 4: a new region is accepted only after it has been the
         # closest one in region_confirmations consecutive scans.
         closest = self.closest_region(measurements)
 
         if closest == self.region_candidate:
-            self.region_candidate_count += 1
+            self.region_candidate_count += 1    # Same candidate: sums
         else:
-            self.region_candidate = closest
+            self.region_candidate = closest     # New candidate, starts
             self.region_candidate_count = 1
 
         if self.region_candidate_count >= self.region_confirmations:
@@ -195,10 +207,12 @@ class HolonomicObstacleWallFollower(Node):
         if self.front_start_pose is None or self.odom_pose is None:
             return 0.0
 
-        x0, y0, yaw0 = self.front_start_pose
-        x, y, _ = self.odom_pose
+        x0, y0, yaw0 = self.front_start_pose    # POSE at entering at FRONT
+        x, y, _ = self.odom_pose                # Actual POSE
         dx = x - x0
         dy = y - y0
+        # Projection of the displacement onto the initial lateral axis
+        # Ignores small forward movements.
         return abs(-math.sin(yaw0) * dx + math.cos(yaw0) * dy)
 
     def run_state(self, measurements, closest, cmd):
@@ -227,14 +241,21 @@ class HolonomicObstacleWallFollower(Node):
     def follow_right(self, measurements, closest, cmd):
         """Follow the wall using lateral and angular correction."""
         # TODO 6
+        # Without a close region confirmed -> stop (cmd a 0).
+        if closest is None:
+            return
+         # Change to FRONT when the closest region is FRONT.
         if closest == self.FRONT:
             # Obstacle ahead: start the bypass and remember where it began.
             self.state = self.FRONT
-            self.front_start_pose = self.odom_pose
+            self.front_start_pose = self.odom_pose  # Stores (x0, y0, yaw0)
             self.obstacle_is_long = False
+            self.passing_short_obstacle = False
             self.run_state(measurements, closest, cmd)
             return
 
+        # Bypass in progress: if the closest point is now BACK_RIGHT, we transition
+        # from RIGHT to the BACK_RIGHT phase.
         if closest == self.BACK_RIGHT and self.passing_short_obstacle:
             # We are past the obstacle: go and recover the wall.
             self.state = self.BACK_RIGHT
@@ -242,14 +263,19 @@ class HolonomicObstacleWallFollower(Node):
             return
 
         right_distance, right_angle = measurements[self.RIGHT]
+        # Without measure on the right we cannot control -> stop.
+        if right_angle is None:
+            return
         self.right_angle = right_angle
 
+        # vx: go forward
         cmd.linear.x = self.forward_speed
 
         if right_distance >= self.detection_limit:
             return
 
         # Lateral correction: too far (error > 0) -> move right (vy < 0).
+        # Too close (error < 0) -> move left (vy > 0).
         distance_error = right_distance - self.follow_distance
         cmd.linear.y = clamp(
             -self.lateral_gain * distance_error,
@@ -272,9 +298,11 @@ class HolonomicObstacleWallFollower(Node):
         """Move laterally and classify the obstacle as short or long."""
         # TODO 7
         if self.obstacle_is_long:
-            self.turn_left_to_new_wall(measurements, closest, cmd)
+            self.turn_left_to_new_wall(measurements, closest, cmd) # Long wall: turn left without moving from the spot.
             return
 
+        # The front has cleared (or the wall has turned to the
+        # right): we move from FRONT to FRONT_RIGHT.
         if closest != self.FRONT:
             # FRONT cleared before max_front_length: short obstacle.
             self.passing_short_obstacle = True
@@ -286,7 +314,7 @@ class HolonomicObstacleWallFollower(Node):
             return
 
         # Stop forward motion and move left.
-        cmd.linear.y = self.lateral_speed
+        cmd.linear.y = self.lateral_speed  # Stop forward progress (vx = 0) and slide left (vy positive)
 
         if self.lateral_progress() >= self.max_front_length:
             # FRONT did not clear in time: long wall. Stop and turn left.
@@ -297,6 +325,9 @@ class HolonomicObstacleWallFollower(Node):
         """Move diagonally around the front-right side."""
         # TODO 8
         if self.obstacle_is_long:
+        # LONG WALL: we continue turning left until the
+        # wall reaches the RIGHT region; it then becomes the new right
+        # wall, and we resume normal tracking.
             self.turn_left_to_new_wall(measurements, closest, cmd)
             return
 
@@ -312,7 +343,7 @@ class HolonomicObstacleWallFollower(Node):
             self.run_state(measurements, closest, cmd)
             return
 
-        # Short obstacle: forward + left, at reduced speed.
+        # Short obstacle: forward (vx) + left (vy), at reduced speed.
         cmd.linear.x = self.forward_speed * self.diagonal_factor
         cmd.linear.y = self.lateral_speed * self.diagonal_factor
 
@@ -320,13 +351,15 @@ class HolonomicObstacleWallFollower(Node):
         """Complete the bypass and recover the right wall."""
         # TODO 9
         if closest == self.RIGHT:
-            # Right wall recovered: enable angular alignment again.
+            # Right wall recovered: end of bypass.
+            # Passing a short obstacle is desactivated, so we enable angular alignment again.
             self.passing_short_obstacle = False
             self.state = self.RIGHT
             self.run_state(measurements, closest, cmd)
             return
 
-        # Forward + right (towards the wall), at reduced speed.
+        # Slow diagonal +vx/-vy (forward + to the right) to return
+        # toward the wall at a reduced speed. angular.z remains at 0.
         cmd.linear.x = self.forward_speed * self.diagonal_factor
         cmd.linear.y = -self.lateral_speed * self.diagonal_factor
 
@@ -336,7 +369,8 @@ class HolonomicObstacleWallFollower(Node):
         measurements = self.region_measurements(scan)
         closest = self.confirmed_region(measurements)
 
-        cmd = Twist()
+        cmd = Twist()       # Start from scratch: it’s the default safe command
+        
         self.run_state(measurements, closest, cmd)
         self.command = cmd
         self.report(measurements, closest, cmd)
