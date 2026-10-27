@@ -360,7 +360,8 @@ class HolonomicObstacleWallFollower(Node):
 
         # Slow diagonal +vx/-vy (forward + to the right) to return
         # toward the wall at a reduced speed. angular.z remains at 0.
-        #cmd.linear.x = self.forward_speed * self.diagonal_factor
+        # New version: the robot moves ONLY right after bypassing a short obstacle
+        #cmd.linear.x = self.forward_speed * self.diagonal_factor 
         cmd.linear.y = -self.lateral_speed * self.diagonal_factor
 
     def scan_callback(self, scan):
