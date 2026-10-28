@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.8">
-  <world name="empty_world_ign">
+  <world name="groupB2_custom">
 
     <physics name="default_physics" type="ode">
         <max_step_size>0.005</max_step_size>
@@ -77,7 +77,7 @@
         </gz-gui>
         <engine>ogre2</engine>
         <scene>scene</scene>
-        <camera_pose>0 0 2.5 0 1.5708 0</camera_pose>
+        <camera_pose>0 0 4 0 1.5708 0</camera_pose>
       </plugin>
 
       <plugin filename="GzSceneManager" name="Scene Manager">
@@ -122,6 +122,221 @@
       <plugin filename="ComponentInspector" name="Component inspector"/>
       <plugin filename="EntityTree" name="Entity tree"/>
     </gui>
+    
+        <!-- ===== Muralla: quadrat de 6 m x 6 m centrat a l'origen (5 parets per costat) ===== -->
+
+    <!-- Paret nord (y = 3.0) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>north_1</name>
+      <pose>-2.4 3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>north_2</name>
+      <pose>-1.2 3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>north_3</name>
+      <pose>0 3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>north_4</name>
+      <pose>1.2 3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>north_5</name>
+      <pose>2.4 3.0 0.15 0 0 0</pose>
+    </include>
+
+    <!-- Paret sud (y = -3.0) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>south_1</name>
+      <pose>-2.4 -3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>south_2</name>
+      <pose>-1.2 -3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>south_3</name>
+      <pose>0 -3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>south_4</name>
+      <pose>1.2 -3.0 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>south_5</name>
+      <pose>2.4 -3.0 0.15 0 0 0</pose>
+    </include>
+
+    <!-- Paret est (x = 3.0) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>east_1</name>
+      <pose>3.0 -2.4 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>east_2</name>
+      <pose>3.0 -1.2 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>east_3</name>
+      <pose>3.0 0 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>east_4</name>
+      <pose>3.0 1.2 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>east_5</name>
+      <pose>3.0 2.4 0.15 0 0 1.5708</pose>
+    </include>
+
+    <!-- Paret oest (x = -3.0) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>west_1</name>
+      <pose>-3.0 -2.4 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>west_2</name>
+      <pose>-3.0 -1.2 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>west_3</name>
+      <pose>-3.0 0 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>west_4</name>
+      <pose>-3.0 1.2 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>west_5</name>
+      <pose>-3.0 2.4 0.15 0 0 1.5708</pose>
+    </include>
+
+    <!-- ===== Laberint 5: dues cruïlles seguides ===== -->
+
+    <!-- Passadís d entrada (x = -0.6 i x = 0.6, de y = -3 a -1.8) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>in_left</name>
+      <pose>-0.6 -2.4 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>in_right</name>
+      <pose>0.6 -2.4 0.15 0 0 1.5708</pose>
+    </include>
+
+    <!-- Cruïlla 1: carreró de l esquerra (y entre -1.8 i -0.6, x de -3 a -0.6) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c1_dead_bottom_1</name>
+      <pose>-2.4 -1.8 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c1_dead_bottom_2</name>
+      <pose>-1.2 -1.8 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c1_top_1</name>
+      <pose>-2.4 -0.6 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c1_top_2</name>
+      <pose>-1.2 -0.6 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c1_top_3</name>
+      <pose>0 -0.6 0.15 0 0 0</pose>
+    </include>
+
+    <!-- Cruïlla 1: branca de la dreta, gira cap amunt -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c1_right_bottom</name>
+      <pose>1.2 -1.8 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c1_right_end</name>
+      <pose>1.8 -1.2 0.15 0 0 1.5708</pose>
+    </include>
+
+    <!-- Passadís cap a la cruïlla 2 (x = 0.6 i x = 1.8, de y = -0.6 a 0.6) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>mid_left</name>
+      <pose>0.6 0 0.15 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>mid_right</name>
+      <pose>1.8 0 0.15 0 0 1.5708</pose>
+    </include>
+
+    <!-- Cruïlla 2: paret del davant i carreró de la dreta -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c2_top</name>
+      <pose>1.2 1.8 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c2_dead_bottom</name>
+      <pose>2.4 0.6 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>c2_dead_side</name>
+      <pose>1.8 2.4 0.15 0 0 1.5708</pose>
+    </include>
+
+    <!-- Cruïlla 2: sala de sortida a l esquerra (x de -3 a 0.6, y de 0.6 a 3) -->
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>exit_bottom_1</name>
+      <pose>-2.4 0.6 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>exit_bottom_2</name>
+      <pose>-1.2 0.6 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>exit_bottom_3</name>
+      <pose>0 0.6 0.15 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://wall120cm</uri>
+      <name>exit_side</name>
+      <pose>0.6 2.4 0.15 0 0 1.5708</pose>
+    </include>
+    
 
   </world>
 </sdf>
