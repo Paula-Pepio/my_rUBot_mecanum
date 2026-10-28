@@ -221,14 +221,43 @@ The original material under
 during migration, but new experiments should use `tools/yolo_model_generation`.
 
 ## Installation
+
+This is the reference installation section for the YOLO model-generation and
+traffic-sign navigation projects. Do not repeat these commands in the
+navigation document.
+
+Create an isolated Python environment on the computer used to prepare the
+dataset, train the model or test YOLO locally.
+
+### Windows
+
 ```bash
-py -3.11 -m pip install ultralytics
-py -3.11 -m pip uninstall numpy
-py -3.11 -m pip install "numpy<2.0"
-py -3.11 -m pip install pillow
-py -3.11 -m pip install opencv-python
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install ultralytics "numpy<2.0" pillow opencv-python
 ```
-> Change the Python version to match the version installed on your computer.
+
+Change `3.11` if another compatible Python version is installed.
+
+### Ubuntu or a ROS 2 development container
+
+```bash
+python3 -m venv --system-site-packages .venv-yolo
+source .venv-yolo/bin/activate
+python -m pip install --upgrade pip
+python -m pip install ultralytics "numpy<2.0"
+```
+
+The `--system-site-packages` option makes the ROS 2 Python packages available
+inside the virtual environment. Do not uninstall or force-reinstall the system
+versions of NumPy or OpenCV in a working ROS 2 installation, because this can
+break packages such as `cv_bridge`.
+
+Ultralytics is not required for activity A6 in The Construct. In that
+environment, the classifier output is simulated by publishing `left`, `right`
+or `stop` on `/traffic_sign`. Ultralytics is only needed when running the real
+or simulated camera classifier.
 
 ## 1. YOLO Model Generation for a Classification Task
 
