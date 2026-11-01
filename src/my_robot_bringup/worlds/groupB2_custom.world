@@ -365,14 +365,14 @@
 
             <!-- Senyal: prohibit girar a l'esquerra (el robot arriba mirant a +y) -->
     <include>
-      <uri>model://sign_right_ign</uri>
+      <uri>model://sign_left_ign</uri>
       <name>sign_no_left</name>
       <pose>0 -0.75 0 0 0 3.1416</pose>
     </include>
 
         <!-- Senyal: prohibit girar a la dreta (el robot arriba mirant a +y) -->
     <include>
-      <uri>model://sign_left_ign</uri>
+      <uri>model://sign_right_ign</uri>
       <name>sign_no_right</name>
       <pose>1.2 1.65 0 0 0 3.1416</pose>
     </include>
