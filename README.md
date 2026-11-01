@@ -8,11 +8,21 @@ In this ROS2 repository we design, simulate and control different robots:
 - Laia Colomer's commit contribution to the repository (collaborator).
 
 ## Commands to launch our custom world
-```pkill -f "ign gazebo"; cd ~/my_rUBot_mecanum && colcon build --packages-select my_robot_bringup && source install/setup.bash```
-```ros2 launch my_robot_bringup my_robot_bringup_gz.launch.py world:=groupB2_custom.world x:=0.0 y:=-2.4 yaw:=1.5708```
+```
+cd ~/my_rUBot_mecanum
+colcon build --symlink-install
+source install/setup.bash
+pkill -f "ign gazebo"; cd ~/my_rUBot_mecanum && colcon build --packages-select my_robot_bringup && source install/setup.bash```
+ros2 launch my_robot_bringup my_robot_bringup_gz.launch.py world:=groupB2_custom.world x:=0.0 y:=-2.4 yaw:=1.5708
+```
 
 ## Command to launch the navigation stack Nav2 (with optimized LiDAR configuration):
-```ros2 launch my_robot_navigation2 navigation2_robot.launch.py use_sim_time:=true map_file:=groupB2_map.yaml params_file:=rubot_sw_lidar_ign.yaml```
+```
+cd ~/my_rUBot_mecanum
+colcon build --symlink-install --packages-select my_robot_navigation2
+source install/setup.bash
+ros2 launch my_robot_navigation2 navigation2_robot.launch.py use_sim_time:=true map_file:=groupB2_map.yaml params_file:=rubot_sw_lidar_ign.yaml
+```
 
 ## Command to launch the *autonomus navigation*
 ```
