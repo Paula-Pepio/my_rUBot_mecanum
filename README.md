@@ -13,3 +13,11 @@ In this ROS2 repository we design, simulate and control different robots:
 
 ## Command to launch the navigation stack Nav2 (with optimized LiDAR configuration):
 * ros2 launch my_robot_navigation2 navigation2_robot.launch.py use_sim_time:=true map_file:=groupB2_map.yaml params_file:=rubot_sw_lidar_ign.yaml
+
+## Command to launch the navigation with waypoints:
+cd ~/my_rUBot_mecanum
+colcon build --symlink-install --packages-select my_robot_nav_control
+source install/setup.bash
+
+ros2 launch my_robot_nav_control nav_waypoints.launch.py \
+  wp_file:=groupB2_waypoints.yaml
