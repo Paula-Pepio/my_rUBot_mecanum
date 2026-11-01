@@ -12,7 +12,7 @@ In this ROS2 repository we design, simulate and control different robots:
 cd ~/my_rUBot_mecanum
 colcon build --symlink-install
 source install/setup.bash
-pkill -f "ign gazebo"; cd ~/my_rUBot_mecanum && colcon build --packages-select my_robot_bringup && source install/setup.bash```
+pkill -f "ign gazebo"; cd ~/my_rUBot_mecanum && colcon build --packages-select my_robot_bringup && source install/setup.bash
 ros2 launch my_robot_bringup my_robot_bringup_gz.launch.py world:=groupB2_custom.world x:=0.0 y:=-2.4 yaw:=1.5708
 ```
 
