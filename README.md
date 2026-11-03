@@ -7,6 +7,8 @@ In this ROS2 repository we design, simulate and control different robots:
 - David Bonillo's commit contribution to the repository (collaborator).
 - Laia Colomer's commit contribution to the repository (collaborator).
 
+- Hola soc el David prova
+
 ## Commands to launch our custom world
 ```
 cd ~/my_rUBot_mecanum
