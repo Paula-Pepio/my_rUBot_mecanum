@@ -14,15 +14,17 @@ class TrafficSignNavigation(Node):
     def __init__(self):
         super().__init__('traffic_sign_navigation')
 
-        self.declare_parameter('initial_pose', [0.0, 0.0, 0.0])
-        self.declare_parameter('inspection_pose', [0.5, -1.0, 1.57])
-        self.declare_parameter('left_waypoint', [-0.8, 0.3, 1.57])
-        self.declare_parameter('right_waypoint', [0.8, 0.3, 1.57])
-        self.declare_parameter('final_pose', [0.0, 1.3, 1.57])
+        self.declare_parameter('initial_pose', [0.021, -0.015, 0.0])
+        self.declare_parameter('inspection_pose', [1.078, 0.035, 0.0])
+        self.declare_parameter('inspection_pose_2', [3.453, -1.163, 0.0])
+        self.declare_parameter('left_waypoint', [3.975, 1.854, -0.785])
+        self.declare_parameter('right_waypoint', [4.613, -2.366, 3.142])
+        self.declare_parameter('final_pose', [2.19, -1.146, 3.142])
         self.declare_parameter('stop_duration', 3.0)
 
         self.initial_pose = self.get_parameter('initial_pose').value
         self.inspection_pose = self.get_parameter('inspection_pose').value
+        self.inspection_pose_2 = self.get_parameter('inspection_pose_2').value
         self.left_waypoint = self.get_parameter('left_waypoint').value
         self.right_waypoint = self.get_parameter('right_waypoint').value
         self.final_pose = self.get_parameter('final_pose').value
@@ -91,37 +93,51 @@ class TrafficSignNavigation(Node):
         sign = self.wait_for_sign()
 
         # TODO 4: Implement left, right, stop and unknown-sign behaviour.
+        
+        #--- Inspection 1: this sign ALWAYS forbids turning left ---
+        # The only possible route is towards inspection 2, so we do not
+        # need to wait for a message here.
+        self.go_to(self.inspection_pose, 'inspection pose 1')
+        self.get_logger().info(
+            'Sign 1 always forbids turning left: going to inspection pose 2')
+ 
+        # --- Inspection 2: the sign can change ---
+        self.go_to(self.inspection_pose_2, 'inspection pose 2')
+        sign = self.wait_for_sign()
+ 
+        # 'left'  = "no right turn" sign -> take the left route
         if sign == 'left':
             self.get_logger().info('Sign "left": taking the left route')
             self.go_to(self.left_waypoint, 'left waypoint')
             self.go_to(self.final_pose, 'final pose')
-
+ 
+         # 'right' = "no left turn" sign  -> take the right route
         elif sign == 'right':
             self.get_logger().info('Sign "right": taking the right route')
             self.go_to(self.right_waypoint, 'right waypoint')
             self.go_to(self.final_pose, 'final pose')
-
+ 
         elif sign == 'stop':
             self.get_logger().info(
                 f'Sign "stop": waiting {self.stop_duration} seconds')
             time.sleep(self.stop_duration)
             self.go_to(self.final_pose, 'final pose')
-
+ 
         else:
             self.get_logger().warn(
-                f'Unknown sign "{sign}": staying at the inspection pose')
-
-
+                f'Unknown sign "{sign}": staying at inspection pose 2')
+ 
+ 
 def main(args=None):
     rclpy.init(args=args)
     node = TrafficSignNavigation()
-
+ 
     try:
         node.run()
     finally:
         node.destroy_node()
         rclpy.shutdown()
-
-
+ 
+ 
 if __name__ == '__main__':
     main()
