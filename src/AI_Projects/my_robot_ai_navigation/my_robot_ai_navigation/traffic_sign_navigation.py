@@ -10,10 +10,14 @@ from tf_transformations import quaternion_from_euler
 
 
 class TrafficSignNavigation(Node):
+    """
+    ROS2 node that navigates a robot through an environment,
+    reacting dynamically to detected traffic signs using Nav2.
+    """
 
     def __init__(self):
         super().__init__('traffic_sign_navigation')
-
+        # Define spatial coordinates (x, y, yaw) and timing parameters
         self.declare_parameter('initial_pose', [0.021, -0.015, 0.0])
         self.declare_parameter('inspection_pose', [1.078, 0.035, 0.0])
         self.declare_parameter('inspection_pose_2', [3.453, -1.163, 0.0])
@@ -52,10 +56,11 @@ class TrafficSignNavigation(Node):
 
     def create_pose(self, values):
         x, y, yaw = values
+        # Convert orientation from Euler angles (yaw) to quaternions
         qx, qy, qz, qw = quaternion_from_euler(0.0, 0.0, yaw)
 
         pose = PoseStamped()
-        pose.header.frame_id = 'map'
+        pose.header.frame_id = 'map'  # Reference coordinate frame
         pose.header.stamp = self.get_clock().now().to_msg()
         pose.pose.position.x = float(x)
         pose.pose.position.y = float(y)
@@ -79,6 +84,8 @@ class TrafficSignNavigation(Node):
 
         # TODO 3: Process callbacks until detected_sign is not None.
         # spin_once lets ROS call sign_callback when a message arrives.
+        
+        # Keep spinning the node to process incoming callbacks until a sign is detected
         while self.detected_sign is None and rclpy.ok():
             rclpy.spin_once(self, timeout_sec=0.1)
 
@@ -105,6 +112,7 @@ class TrafficSignNavigation(Node):
         self.go_to(self.inspection_pose_2, 'inspection pose 2')
         sign = self.wait_for_sign()
  
+        # Evaluate the detected sign and execute the corresponding maneuver
         # 'left'  = "no right turn" sign -> take the left route
         if sign == 'left':
             self.get_logger().info('Sign "left": taking the left route')
