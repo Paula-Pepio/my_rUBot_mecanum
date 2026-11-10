@@ -18,17 +18,15 @@ class TrafficSignNavigation(Node):
     def __init__(self):
         super().__init__('traffic_sign_navigation')
         # Define spatial coordinates (x, y, yaw) and timing parameters
-        self.declare_parameter('initial_pose', [0.021, -0.015, 0.0])
-        self.declare_parameter('inspection_pose', [1.078, 0.035, 0.0])
-        self.declare_parameter('inspection_pose_2', [3.453, -1.163, 0.0])
-        self.declare_parameter('left_waypoint', [3.975, 1.854, -0.785])
-        self.declare_parameter('right_waypoint', [4.613, -2.366, 3.142])
-        self.declare_parameter('final_pose', [2.19, -1.146, 3.142])
+        self.declare_parameter('initial_pose', [0.0, 0.0, 0.0])
+        self.declare_parameter('inspection_pose', [0.5, 0.0, 0.0])
+        self.declare_parameter('left_waypoint', [1.0, 0.5, 0.0])
+        self.declare_parameter('right_waypoint', [1.0, -0.5, 0.0])
+        self.declare_parameter('final_pose', [3.0, 0.0, 1.57])
         self.declare_parameter('stop_duration', 3.0)
 
         self.initial_pose = self.get_parameter('initial_pose').value
         self.inspection_pose = self.get_parameter('inspection_pose').value
-        self.inspection_pose_2 = self.get_parameter('inspection_pose_2').value
         self.left_waypoint = self.get_parameter('left_waypoint').value
         self.right_waypoint = self.get_parameter('right_waypoint').value
         self.final_pose = self.get_parameter('final_pose').value
@@ -101,17 +99,6 @@ class TrafficSignNavigation(Node):
 
         # TODO 4: Implement left, right, stop and unknown-sign behaviour.
         
-        #--- Inspection 1: this sign ALWAYS forbids turning left ---
-        # The only possible route is towards inspection 2, so we do not
-        # need to wait for a message here.
-        self.go_to(self.inspection_pose, 'inspection pose 1')
-        self.get_logger().info(
-            'Sign 1 always forbids turning left: going to inspection pose 2')
- 
-        # --- Inspection 2: the sign can change ---
-        self.go_to(self.inspection_pose_2, 'inspection pose 2')
-        sign = self.wait_for_sign()
- 
         # Evaluate the detected sign and execute the corresponding maneuver
         # 'left'  = "no right turn" sign -> take the left route
         if sign == 'left':
