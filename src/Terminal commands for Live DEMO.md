@@ -3,17 +3,26 @@
 ## Wall-follower
 Acces the Python script for each control (located at *my_rUBot_mecanum/src/my_robot_control/my_robot_control/*) and execute them.
 
-1. **Differential** control 
+1. **Differential** control
+   ```
+   ros2 topic pub --once /reset_odom std_msgs/msg/Bool "{data: true}"
+   ```
    ```
    /usr/bin/python3/home/student/Desktop/my_rUBot_mecanum/src/my_robot_control/my_robot_control/my_robot_wallfollower_differential.py
    ```
-
+   
 2. **Holonomic** control
+   ```
+   ros2 topic pub --once /reset_odom std_msgs/msg/Bool "{data: true}"
+   ```
    ```
    /usr/bin/python3/home/student/Desktop/my_rUBot_mecanum/src/my_robot_control/my_robot_control/my_robot_wallfollower_holonomic.py
    ```
 
 3. **Holonomic Improved** control
+   ```
+   ros2 topic pub --once /reset_odom std_msgs/msg/Bool "{data: true}"
+   ```
    ```
    /usr/bin/python3/home/student/Desktop/my_rUBot_mecanum/src/my_robot_control/my_robot_control/my_robot_wallfollower_holonomic_obstacle_V2.py
    ```
